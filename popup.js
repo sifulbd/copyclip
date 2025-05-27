@@ -30,50 +30,57 @@ function loadHistory() {
         const historyDiv = document.getElementById("history");
         historyDiv.innerHTML = "";
 
-        items.forEach((item, index) => {
-            const div = document.createElement("div");
-            div.className = "clip";
-            div.title = "Click to copy";
+        if (items.length <= 0) {
+            historyDiv.style.textAlign = "center";
+            historyDiv.innerHTML = "Nothing to copy. Copy somthing to show here!";
+            document.getElementById("maintitle").style.textAlign = "center";
+            document.getElementById("maintitle").style.width = "100%";
+            document.getElementById("clear").style.display = "none";
+        } else {
+            items.forEach((item, index) => {
+                const div = document.createElement("div");
+                div.className = "clip";
+                div.title = "Click to copy";
 
-            const span = document.createElement("span");
-            span.textContent = item.text?.slice(0, 100) || "(empty)";
+                const span = document.createElement("span");
+                span.textContent = item.text?.slice(0, 100) || "(empty)";
 
-            div.addEventListener("click", () => {
-                const blobMap = {
-                    "text/plain": new Blob([item.text || ""], { type: "text/plain" }),
-                };
-                if (item.html) {
-                    blobMap["text/html"] = new Blob([item.html], { type: "text/html" });
-                }
-                navigator.clipboard.write([new ClipboardItem(blobMap)]).then(() => {
-                    showToast("Copied to clipboard!");
+                div.addEventListener("click", () => {
+                    const blobMap = {
+                        "text/plain": new Blob([item.text || ""], { type: "text/plain" }),
+                    };
+                    if (item.html) {
+                        blobMap["text/html"] = new Blob([item.html], { type: "text/html" });
+                    }
+                    navigator.clipboard.write([new ClipboardItem(blobMap)]).then(() => {
+                        showToast("Copied to clipboard!");
+                    });
                 });
-            });
 
-            const pinBtn = document.createElement("button");
-            pinBtn.textContent = item.pinned ? "📌" : "📍";
-            pinBtn.title = "Pin/Unpin this entry";
-            pinBtn.style.color = "#f39c12"; // Use same color for both icons
-            pinBtn.addEventListener("click", (event) => {
-                event.stopPropagation();
-                items[index].pinned = !items[index].pinned;
-                chrome.storage.local.set({ clipboard: items }, loadHistory);
-            });
+                const pinBtn = document.createElement("button");
+                pinBtn.textContent = item.pinned ? "📌" : "📍";
+                pinBtn.title = "Pin/Unpin this entry";
+                pinBtn.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    items[index].pinned = !items[index].pinned;
+                    chrome.storage.local.set({ clipboard: items }, loadHistory);
+                });
 
-            const deleteBtn = document.createElement("button");
-            deleteBtn.textContent = "✖️";
-            deleteBtn.title = "Delete this entry";
-            deleteBtn.addEventListener("click", (event) => {
-                event.stopPropagation();
-                items.splice(index, 1);
-                chrome.storage.local.set({ clipboard: items }, loadHistory);
-            });
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "✖️";
+                deleteBtn.title = "Delete this entry";
+                deleteBtn.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    items.splice(index, 1);
+                    chrome.storage.local.set({ clipboard: items }, loadHistory);
+                });
 
-            div.appendChild(span);
-            div.appendChild(pinBtn);
-            div.appendChild(deleteBtn);
-            historyDiv.appendChild(div);
-        });
+                div.appendChild(span);
+                div.appendChild(pinBtn);
+                div.appendChild(deleteBtn);
+                historyDiv.appendChild(div);
+            });
+        }
     });
 }
 
